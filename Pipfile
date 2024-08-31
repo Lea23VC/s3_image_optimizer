@@ -8,6 +8,7 @@ boto3 = "*"
 pillow = "*"
 
 [dev-packages]
+python-dotenv = "*"
 
 [requires]
 python_version = "3.12"

@@ -3,11 +3,16 @@ import os
 from PIL import Image
 from io import BytesIO
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from dotenv import load_dotenv
+
+
+# Load environment variables from .env file
+load_dotenv(override=True)
 
 # AWS S3 configuration
-bucket_name = 'aigisbot-media'
-region_name = 'us-east-1'
-profile_name = 'new-lea'
+bucket_name = os.getenv('BUCKET_NAME')
+region_name = os.getenv('REGION_NAME', 'us-east-1')
+profile_name = os.getenv('PROFILE_NAME', 'default')
 
 # Initialize S3 client
 session = boto3.Session(profile_name=profile_name)
@@ -28,13 +33,13 @@ def optimize_image(obj):
     # Optimize and convert to WebP
     img = Image.open(BytesIO(img_data))
     output = BytesIO()
-    img.save(output, format='WEBP', quality=85)  # Adjust quality as needed
+    img.save(output, format='WEBP', quality=90)  # Adjust quality as needed
     output.seek(0)
 
-    # Upload the optimized image back to S3
-    s3_client.upload_fileobj(
-        output, bucket_name, key[:-4] + ".webp", ExtraArgs={'ContentType': 'image/webp'})
-    print(f"Optimized and uploaded {key} as WebP.")
+    # Upload the optimized image back to S3, replacing the original
+    s3_client.upload_fileobj(output, bucket_name, key, ExtraArgs={
+                             'ContentType': 'image/webp'})
+    print(f"Optimized and replaced {key} with WebP version.")
 
 
 def process_images():
